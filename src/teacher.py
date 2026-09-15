@@ -7,7 +7,7 @@ T = TypeVar("T")
 
 
 class Teacher:
-    """Класс преподавателя с альтернативными конструкторами."""
+    """Класс преподавателя с валидацией, альтернативными конструкторами и строковым представлением."""
 
     def __init__(
         self,
@@ -106,7 +106,7 @@ class Teacher:
     def validate_hire_date(val: date) -> bool:
         return isinstance(val, date) and val <= date.today()
 
-    # --- Вспомогательная валидация и свойства ---
+    # --- Вспомогательная валидация ---
 
     def _set_validated_attr(
         self,
@@ -124,6 +124,8 @@ class Teacher:
             raise ValueError(f"{error_msg}: {value}")
 
         setattr(self, attr_name, value)
+
+    # --- Свойства (Properties) ---
 
     @property
     def teacher_id(self) -> int:
@@ -238,3 +240,20 @@ class Teacher:
             self.validate_hire_date,
             "Некорректная дата найма",
         )
+
+    # --- Строковое представление объекта (Пункт 7) ---
+
+    def __repr__(self) -> str:
+        return (
+            f"Teacher(teacher_id={self.teacher_id!r}, "
+            f"last_name={self.last_name!r}, "
+            f"first_name={self.first_name!r}, "
+            f"phone={self.phone!r}, "
+            f"experience_years={self.experience_years!r}, "
+            f"hire_date={self.hire_date!r})"
+        )
+
+    def __str__(self) -> str:
+        pos = f", Должность: {self.position}" if self.position else ""
+        mid = f" {self.middle_name}" if self.middle_name else ""
+        return f"Преподаватель: {self.last_name} {self.first_name}{mid} (ID: {self.teacher_id}{pos})"
