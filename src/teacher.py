@@ -7,7 +7,7 @@ T = TypeVar("T")
 
 
 class Teacher:
-    """Класс преподавателя с валидацией, альтернативными конструкторами и строковым представлением."""
+    """Класс преподавателя с полной валидацией, конструкторами, строковым представлением и операциями сравнения."""
 
     def __init__(
         self,
@@ -241,7 +241,7 @@ class Teacher:
             "Некорректная дата найма",
         )
 
-    # --- Строковое представление объекта (Пункт 7) ---
+    # --- Строковое представление ---
 
     def __repr__(self) -> str:
         return (
@@ -257,3 +257,30 @@ class Teacher:
         pos = f", Должность: {self.position}" if self.position else ""
         mid = f" {self.middle_name}" if self.middle_name else ""
         return f"Преподаватель: {self.last_name} {self.first_name}{mid} (ID: {self.teacher_id}{pos})"
+
+    # --- Методы сравнения (Пункт 8) ---
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Teacher):
+            return NotImplemented
+        return self.teacher_id == other.teacher_id
+
+    def __lt__(self, other: "Teacher") -> bool:
+        if not isinstance(other, Teacher):
+            return NotImplemented
+        return self.experience_years < other.experience_years
+
+    def __le__(self, other: "Teacher") -> bool:
+        if not isinstance(other, Teacher):
+            return NotImplemented
+        return self.experience_years <= other.experience_years
+
+    def __gt__(self, other: "Teacher") -> bool:
+        if not isinstance(other, Teacher):
+            return NotImplemented
+        return self.experience_years > other.experience_years
+
+    def __ge__(self, other: "Teacher") -> bool:
+        if not isinstance(other, Teacher):
+            return NotImplemented
+        return self.experience_years >= other.experience_years
