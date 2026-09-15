@@ -7,7 +7,7 @@ T = TypeVar("T")
 
 
 class Teacher:
-    """Класс преподавателя с полной валидацией, конструкторами, сравнением и хэшированием."""
+    """Полный класс преподавателя с валидацией, хэшированием и расчетными свойствами."""
 
     def __init__(
         self,
@@ -30,6 +30,20 @@ class Teacher:
         self.experience_years = experience_years
         self.position = position
         self.hire_date = hire_date
+
+    # --- Динамические (расчетные) свойства (Пункт 10) ---
+
+    @property
+    def full_name(self) -> str:
+        """Возвращает полное ФИО преподавателя."""
+        if self.middle_name:
+            return f"{self.last_name} {self.first_name} {self.middle_name}"
+        return f"{self.last_name} {self.first_name}"
+
+    @property
+    def days_employed(self) -> int:
+        """Возвращает количество дней, проработанных в организации."""
+        return (date.today() - self.hire_date).days
 
     # --- Альтернативные конструкторы (@classmethod) ---
 
@@ -255,8 +269,7 @@ class Teacher:
 
     def __str__(self) -> str:
         pos = f", Должность: {self.position}" if self.position else ""
-        mid = f" {self.middle_name}" if self.middle_name else ""
-        return f"Преподаватель: {self.last_name} {self.first_name}{mid} (ID: {self.teacher_id}{pos})"
+        return f"Преподаватель: {self.full_name} (ID: {self.teacher_id}{pos})"
 
     # --- Методы сравнения ---
 
@@ -285,7 +298,7 @@ class Teacher:
             return NotImplemented
         return self.experience_years >= other.experience_years
 
-    # --- Хэширование (Пункт 9) ---
+    # --- Хэширование ---
 
     def __hash__(self) -> int:
         return hash(self.teacher_id)
