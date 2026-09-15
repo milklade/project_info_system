@@ -21,7 +21,8 @@ def main():
         hire_date=date(2013, 9, 1),
     )
 
-    t3 = Teacher(
+    # Объект с таким же ID, как у t1 (дубликат по бизнес-логике)
+    t1_duplicate = Teacher(
         teacher_id=1,
         last_name="Иванов",
         first_name="Иван",
@@ -30,13 +31,16 @@ def main():
         hire_date=date(2020, 9, 1),
     )
 
-    print("--- Проверка равенства (по ID) ---")
-    print(f"t1 == t3 (одинаковый ID): {t1 == t3}")
-    print(f"t1 == t2 (разные ID): {t1 == t2}")
+    print("--- 1. Использование объектов в множестве (set) ---")
+    teachers_set = {t1, t2, t1_duplicate}
+    print(f"Размер множества (должен быть 2, так как t1 и t1_duplicate совпали): {len(teachers_set)}")
 
-    print("\n--- Проверка сравнения по стажу ---")
-    print(f"У Петрова ({t2.experience_years} лет) стаж больше, чем у Иванова ({t1.experience_years} лет): {t2 > t1}")
-    print(f"t1 < t2: {t1 < t2}")
+    print("\n--- 2. Использование объектов в качестве ключей словаря (dict) ---")
+    workloads = {
+        t1: "120 часов",
+        t2: "180 часов",
+    }
+    print(f"Нагрузка преподавателя t1_duplicate (поиск по хэшу ID): {workloads.get(t1_duplicate)}")
 
 
 if __name__ == "__main__":

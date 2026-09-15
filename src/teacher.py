@@ -7,7 +7,7 @@ T = TypeVar("T")
 
 
 class Teacher:
-    """Класс преподавателя с полной валидацией, конструкторами, строковым представлением и операциями сравнения."""
+    """Класс преподавателя с полной валидацией, конструкторами, сравнением и хэшированием."""
 
     def __init__(
         self,
@@ -258,7 +258,7 @@ class Teacher:
         mid = f" {self.middle_name}" if self.middle_name else ""
         return f"Преподаватель: {self.last_name} {self.first_name}{mid} (ID: {self.teacher_id}{pos})"
 
-    # --- Методы сравнения (Пункт 8) ---
+    # --- Методы сравнения ---
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Teacher):
@@ -284,3 +284,8 @@ class Teacher:
         if not isinstance(other, Teacher):
             return NotImplemented
         return self.experience_years >= other.experience_years
+
+    # --- Хэширование (Пункт 9) ---
+
+    def __hash__(self) -> int:
+        return hash(self.teacher_id)
