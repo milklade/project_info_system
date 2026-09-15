@@ -1,13 +1,13 @@
 import json
 import re
 from datetime import date
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, Optional
 
-T = TypeVar("T")
+from src.teacherShort import TeacherShort
 
 
-class Teacher:
-    """Полный класс преподавателя с валидацией, хэшированием и расчетными свойствами."""
+class Teacher(TeacherShort):
+    """Полный класс преподавателя (Дочерний класс от TeacherShort)."""
 
     def __init__(
         self,
@@ -21,35 +21,41 @@ class Teacher:
         email: Optional[str] = None,
         position: Optional[str] = None,
     ):
-        self.teacher_id = teacher_id
-        self.last_name = last_name
-        self.first_name = first_name
-        self.middle_name = middle_name
-        self.phone = phone
+        # Вызов конструктора родительского класса TeacherShort
+        # (убираем дублирование инициализации ID, ФИО и телефона)
+        super().__init__(
+            teacher_id=teacher_id,
+            last_name=last_name,
+            first_name=first_name,
+            phone=phone,
+            middle_name=middle_name,
+        )
+
+        # Инициализация дополнительных полей класса Teacher
         self.email = email
         self.experience_years = experience_years
         self.position = position
         self.hire_date = hire_date
 
-    # --- Динамические (расчетные) свойства (Пункт 10) ---
+    # --- Дополнительные статические методы валидации ---
 
-    @property
-    def full_name(self) -> str:
-        """Возвращает полное ФИО преподавателя."""
-        if self.middle_name:
-            return f"{self.last_name} {self.first_name} {self.middle_name}"
-        return f"{self.last_name} {self.first_name}"
+    @staticmethod
+    def validate_email(val: str) -> bool:
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        return isinstance(val, str) and bool(re.match(pattern, val))
 
-    @property
-    def days_employed(self) -> int:
-        """Возвращает количество дней, проработанных в организации."""
-        return (date.today() - self.hire_date).days
+    @staticmethod
+    def validate_experience(val: int) -> bool:
+        return isinstance(val, int) and val >= 0
+
+    @staticmethod
+    def validate_hire_date(val: date) -> bool:
+        return isinstance(val, date) and val <= date.today()
 
     # --- Альтернативные конструкторы (@classmethod) ---
 
     @classmethod
     def from_string(cls, data_str: str, sep: str = ";") -> "Teacher":
-        """Создает объект Teacher из текстовой строки с разделителем."""
         parts = [p.strip() for p in data_str.split(sep)]
         if len(parts) < 9:
             raise ValueError(f"Строка должна содержать 9 элементов через '{sep}'")
@@ -67,8 +73,7 @@ class Teacher:
         )
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Teacher":
-        """Создает объект Teacher из словаря (например, из JSON)."""
+    def from_dict(cls, data: dict[str, Any]) -> "Teacher":
         hire_date_val = data.get("hire_date")
         if isinstance(hire_date_val, str):
             hire_date_val = date.fromisoformat(hire_date_val)
@@ -87,125 +92,10 @@ class Teacher:
 
     @classmethod
     def from_json(cls, json_str: str) -> "Teacher":
-        """Создает объект Teacher из строки формата JSON."""
         data = json.loads(json_str)
         return cls.from_dict(data)
 
-    # --- Статические методы валидации ---
-
-    @staticmethod
-    def validate_id(val: int) -> bool:
-        return isinstance(val, int) and val > 0
-
-    @staticmethod
-    def validate_name_part(val: str) -> bool:
-        pattern = r"^[А-ЯЁ][а-яё]+(-[А-ЯЁ][а-яё]+)?$"
-        return isinstance(val, str) and bool(re.match(pattern, val))
-
-    @staticmethod
-    def validate_phone(val: str) -> bool:
-        pattern = r"^(\+7|8)\d{10}$"
-        return isinstance(val, str) and bool(re.match(pattern, val))
-
-    @staticmethod
-    def validate_email(val: str) -> bool:
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return isinstance(val, str) and bool(re.match(pattern, val))
-
-    @staticmethod
-    def validate_experience(val: int) -> bool:
-        return isinstance(val, int) and val >= 0
-
-    @staticmethod
-    def validate_hire_date(val: date) -> bool:
-        return isinstance(val, date) and val <= date.today()
-
-    # --- Вспомогательная валидация ---
-
-    def _set_validated_attr(
-        self,
-        attr_name: str,
-        value: T,
-        validator: Callable[[T], bool],
-        error_msg: str,
-        allow_none: bool = False,
-    ) -> None:
-        if allow_none and value is None:
-            setattr(self, attr_name, value)
-            return
-
-        if not validator(value):
-            raise ValueError(f"{error_msg}: {value}")
-
-        setattr(self, attr_name, value)
-
-    # --- Свойства (Properties) ---
-
-    @property
-    def teacher_id(self) -> int:
-        return self.__teacher_id
-
-    @teacher_id.setter
-    def teacher_id(self, value: int) -> None:
-        self._set_validated_attr(
-            "_Teacher__teacher_id",
-            value,
-            self.validate_id,
-            "Некорректный ID преподавателя",
-        )
-
-    @property
-    def last_name(self) -> str:
-        return self.__last_name
-
-    @last_name.setter
-    def last_name(self, value: str) -> None:
-        self._set_validated_attr(
-            "_Teacher__last_name",
-            value,
-            self.validate_name_part,
-            "Некорректная фамилия",
-        )
-
-    @property
-    def first_name(self) -> str:
-        return self.__first_name
-
-    @first_name.setter
-    def first_name(self, value: str) -> None:
-        self._set_validated_attr(
-            "_Teacher__first_name",
-            value,
-            self.validate_name_part,
-            "Некорректное имя",
-        )
-
-    @property
-    def middle_name(self) -> Optional[str]:
-        return self.__middle_name
-
-    @middle_name.setter
-    def middle_name(self, value: Optional[str]) -> None:
-        self._set_validated_attr(
-            "_Teacher__middle_name",
-            value,
-            self.validate_name_part,
-            "Некорректное отчество",
-            allow_none=True,
-        )
-
-    @property
-    def phone(self) -> str:
-        return self.__phone
-
-    @phone.setter
-    def phone(self, value: str) -> None:
-        self._set_validated_attr(
-            "_Teacher__phone",
-            value,
-            self.validate_phone,
-            "Некорректный номер телефона",
-        )
+    # --- Свойства (Properties) для специфичных полей ---
 
     @property
     def email(self) -> Optional[str]:
@@ -255,6 +145,12 @@ class Teacher:
             "Некорректная дата найма",
         )
 
+    # --- Расчетные свойства ---
+
+    @property
+    def days_employed(self) -> int:
+        return (date.today() - self.hire_date).days
+
     # --- Строковое представление ---
 
     def __repr__(self) -> str:
@@ -269,14 +165,9 @@ class Teacher:
 
     def __str__(self) -> str:
         pos = f", Должность: {self.position}" if self.position else ""
-        return f"Преподаватель: {self.full_name} (ID: {self.teacher_id}{pos})"
+        return f"Преподаватель (полный): {self.full_name} (ID: {self.teacher_id}{pos})"
 
-    # --- Методы сравнения ---
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Teacher):
-            return NotImplemented
-        return self.teacher_id == other.teacher_id
+    # --- Сравнения по стажу ---
 
     def __lt__(self, other: "Teacher") -> bool:
         if not isinstance(other, Teacher):
@@ -297,8 +188,3 @@ class Teacher:
         if not isinstance(other, Teacher):
             return NotImplemented
         return self.experience_years >= other.experience_years
-
-    # --- Хэширование ---
-
-    def __hash__(self) -> int:
-        return hash(self.teacher_id)
