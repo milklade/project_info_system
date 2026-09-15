@@ -1,9 +1,10 @@
+import re
 from datetime import date
 from typing import Optional
 
 
 class Teacher:
-    """Класс, представляющий преподавателя."""
+    """Класс, представляющий преподавателя с валидацией полей."""
 
     def __init__(
         self,
@@ -17,17 +18,46 @@ class Teacher:
         email: Optional[str] = None,
         position: Optional[str] = None,
     ):
-        self.__teacher_id = teacher_id
-        self.__last_name = last_name
-        self.__first_name = first_name
-        self.__middle_name = middle_name
-        self.__phone = phone
-        self.__email = email
-        self.__experience_years = experience_years
-        self.__position = position
-        self.__hire_date = hire_date
+        self.teacher_id = teacher_id
+        self.last_name = last_name
+        self.first_name = first_name
+        self.middle_name = middle_name
+        self.phone = phone
+        self.email = email
+        self.experience_years = experience_years
+        self.position = position
+        self.hire_date = hire_date
 
-    # --- Геттеры и Сеттеры ---
+    # --- Статические методы валидации ---
+
+    @staticmethod
+    def validate_id(val: int) -> bool:
+        return isinstance(val, int) and val > 0
+
+    @staticmethod
+    def validate_name_part(val: str) -> bool:
+        pattern = r"^[А-ЯЁ][а-яё]+(-[А-ЯЁ][а-яё]+)?$"
+        return isinstance(val, str) and bool(re.match(pattern, val))
+
+    @staticmethod
+    def validate_phone(val: str) -> bool:
+        pattern = r"^(\+7|8)\d{10}$"
+        return isinstance(val, str) and bool(re.match(pattern, val))
+
+    @staticmethod
+    def validate_email(val: str) -> bool:
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        return isinstance(val, str) and bool(re.match(pattern, val))
+
+    @staticmethod
+    def validate_experience(val: int) -> bool:
+        return isinstance(val, int) and val >= 0
+
+    @staticmethod
+    def validate_hire_date(val: date) -> bool:
+        return isinstance(val, date) and val <= date.today()
+
+    # --- Геттеры и Сеттеры с вызовом валидации ---
 
     @property
     def teacher_id(self) -> int:
@@ -35,6 +65,8 @@ class Teacher:
 
     @teacher_id.setter
     def teacher_id(self, value: int) -> None:
+        if not self.validate_id(value):
+            raise ValueError(f"Некорректный ID преподавателя: {value}")
         self.__teacher_id = value
 
     @property
@@ -43,6 +75,8 @@ class Teacher:
 
     @last_name.setter
     def last_name(self, value: str) -> None:
+        if not self.validate_name_part(value):
+            raise ValueError(f"Некорректная фамилия: {value}")
         self.__last_name = value
 
     @property
@@ -51,6 +85,8 @@ class Teacher:
 
     @first_name.setter
     def first_name(self, value: str) -> None:
+        if not self.validate_name_part(value):
+            raise ValueError(f"Некорректное имя: {value}")
         self.__first_name = value
 
     @property
@@ -59,6 +95,8 @@ class Teacher:
 
     @middle_name.setter
     def middle_name(self, value: Optional[str]) -> None:
+        if value is not None and not self.validate_name_part(value):
+            raise ValueError(f"Некорректное отчество: {value}")
         self.__middle_name = value
 
     @property
@@ -67,6 +105,8 @@ class Teacher:
 
     @phone.setter
     def phone(self, value: str) -> None:
+        if not self.validate_phone(value):
+            raise ValueError(f"Некорректный номер телефона: {value}")
         self.__phone = value
 
     @property
@@ -75,6 +115,8 @@ class Teacher:
 
     @email.setter
     def email(self, value: Optional[str]) -> None:
+        if value is not None and not self.validate_email(value):
+            raise ValueError(f"Некорректный email: {value}")
         self.__email = value
 
     @property
@@ -83,6 +125,8 @@ class Teacher:
 
     @experience_years.setter
     def experience_years(self, value: int) -> None:
+        if not self.validate_experience(value):
+            raise ValueError(f"Некорректный стаж работы: {value}")
         self.__experience_years = value
 
     @property
@@ -99,4 +143,6 @@ class Teacher:
 
     @hire_date.setter
     def hire_date(self, value: date) -> None:
+        if not self.validate_hire_date(value):
+            raise ValueError(f"Некорректная дата найма: {value}")
         self.__hire_date = value
