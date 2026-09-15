@@ -1,12 +1,13 @@
+import json
 import re
 from datetime import date
-from typing import Callable, Optional, TypeVar
+from typing import Any, Callable, Dict, Optional, TypeVar
 
 T = TypeVar("T")
 
 
 class Teacher:
-    """Класс преподавателя без дублирования кода валидации."""
+    """Класс преподавателя с альтернативными конструкторами."""
 
     def __init__(
         self,
@@ -29,6 +30,52 @@ class Teacher:
         self.experience_years = experience_years
         self.position = position
         self.hire_date = hire_date
+
+    # --- Альтернативные конструкторы (@classmethod) ---
+
+    @classmethod
+    def from_string(cls, data_str: str, sep: str = ";") -> "Teacher":
+        """Создает объект Teacher из текстовой строки с разделителем."""
+        parts = [p.strip() for p in data_str.split(sep)]
+        if len(parts) < 9:
+            raise ValueError(f"Строка должна содержать 9 элементов через '{sep}'")
+
+        return cls(
+            teacher_id=int(parts[0]),
+            last_name=parts[1],
+            first_name=parts[2],
+            middle_name=parts[3] if parts[3] else None,
+            phone=parts[4],
+            email=parts[5] if parts[5] else None,
+            experience_years=int(parts[6]),
+            position=parts[7] if parts[7] else None,
+            hire_date=date.fromisoformat(parts[8]),
+        )
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Teacher":
+        """Создает объект Teacher из словаря (например, из JSON)."""
+        hire_date_val = data.get("hire_date")
+        if isinstance(hire_date_val, str):
+            hire_date_val = date.fromisoformat(hire_date_val)
+
+        return cls(
+            teacher_id=int(data["teacher_id"]),
+            last_name=data["last_name"],
+            first_name=data["first_name"],
+            middle_name=data.get("middle_name"),
+            phone=data["phone"],
+            email=data.get("email"),
+            experience_years=int(data["experience_years"]),
+            position=data.get("position"),
+            hire_date=hire_date_val,
+        )
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "Teacher":
+        """Создает объект Teacher из строки формата JSON."""
+        data = json.loads(json_str)
+        return cls.from_dict(data)
 
     # --- Статические методы валидации ---
 
@@ -59,7 +106,7 @@ class Teacher:
     def validate_hire_date(val: date) -> bool:
         return isinstance(val, date) and val <= date.today()
 
-    # --- Универсальный метод установки с валидацией (устраняет дублирование) ---
+    # --- Вспомогательная валидация и свойства ---
 
     def _set_validated_attr(
         self,
@@ -77,8 +124,6 @@ class Teacher:
             raise ValueError(f"{error_msg}: {value}")
 
         setattr(self, attr_name, value)
-
-    # --- Свойства (Properties) ---
 
     @property
     def teacher_id(self) -> int:
