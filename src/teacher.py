@@ -1,10 +1,12 @@
 import re
 from datetime import date
-from typing import Optional
+from typing import Callable, Optional, TypeVar
+
+T = TypeVar("T")
 
 
 class Teacher:
-    """Класс, представляющий преподавателя с валидацией полей."""
+    """Класс преподавателя без дублирования кода валидации."""
 
     def __init__(
         self,
@@ -57,7 +59,26 @@ class Teacher:
     def validate_hire_date(val: date) -> bool:
         return isinstance(val, date) and val <= date.today()
 
-    # --- Геттеры и Сеттеры с вызовом валидации ---
+    # --- Универсальный метод установки с валидацией (устраняет дублирование) ---
+
+    def _set_validated_attr(
+        self,
+        attr_name: str,
+        value: T,
+        validator: Callable[[T], bool],
+        error_msg: str,
+        allow_none: bool = False,
+    ) -> None:
+        if allow_none and value is None:
+            setattr(self, attr_name, value)
+            return
+
+        if not validator(value):
+            raise ValueError(f"{error_msg}: {value}")
+
+        setattr(self, attr_name, value)
+
+    # --- Свойства (Properties) ---
 
     @property
     def teacher_id(self) -> int:
@@ -65,9 +86,12 @@ class Teacher:
 
     @teacher_id.setter
     def teacher_id(self, value: int) -> None:
-        if not self.validate_id(value):
-            raise ValueError(f"Некорректный ID преподавателя: {value}")
-        self.__teacher_id = value
+        self._set_validated_attr(
+            "_Teacher__teacher_id",
+            value,
+            self.validate_id,
+            "Некорректный ID преподавателя",
+        )
 
     @property
     def last_name(self) -> str:
@@ -75,9 +99,12 @@ class Teacher:
 
     @last_name.setter
     def last_name(self, value: str) -> None:
-        if not self.validate_name_part(value):
-            raise ValueError(f"Некорректная фамилия: {value}")
-        self.__last_name = value
+        self._set_validated_attr(
+            "_Teacher__last_name",
+            value,
+            self.validate_name_part,
+            "Некорректная фамилия",
+        )
 
     @property
     def first_name(self) -> str:
@@ -85,9 +112,12 @@ class Teacher:
 
     @first_name.setter
     def first_name(self, value: str) -> None:
-        if not self.validate_name_part(value):
-            raise ValueError(f"Некорректное имя: {value}")
-        self.__first_name = value
+        self._set_validated_attr(
+            "_Teacher__first_name",
+            value,
+            self.validate_name_part,
+            "Некорректное имя",
+        )
 
     @property
     def middle_name(self) -> Optional[str]:
@@ -95,9 +125,13 @@ class Teacher:
 
     @middle_name.setter
     def middle_name(self, value: Optional[str]) -> None:
-        if value is not None and not self.validate_name_part(value):
-            raise ValueError(f"Некорректное отчество: {value}")
-        self.__middle_name = value
+        self._set_validated_attr(
+            "_Teacher__middle_name",
+            value,
+            self.validate_name_part,
+            "Некорректное отчество",
+            allow_none=True,
+        )
 
     @property
     def phone(self) -> str:
@@ -105,9 +139,12 @@ class Teacher:
 
     @phone.setter
     def phone(self, value: str) -> None:
-        if not self.validate_phone(value):
-            raise ValueError(f"Некорректный номер телефона: {value}")
-        self.__phone = value
+        self._set_validated_attr(
+            "_Teacher__phone",
+            value,
+            self.validate_phone,
+            "Некорректный номер телефона",
+        )
 
     @property
     def email(self) -> Optional[str]:
@@ -115,9 +152,13 @@ class Teacher:
 
     @email.setter
     def email(self, value: Optional[str]) -> None:
-        if value is not None and not self.validate_email(value):
-            raise ValueError(f"Некорректный email: {value}")
-        self.__email = value
+        self._set_validated_attr(
+            "_Teacher__email",
+            value,
+            self.validate_email,
+            "Некорректный email",
+            allow_none=True,
+        )
 
     @property
     def experience_years(self) -> int:
@@ -125,9 +166,12 @@ class Teacher:
 
     @experience_years.setter
     def experience_years(self, value: int) -> None:
-        if not self.validate_experience(value):
-            raise ValueError(f"Некорректный стаж работы: {value}")
-        self.__experience_years = value
+        self._set_validated_attr(
+            "_Teacher__experience_years",
+            value,
+            self.validate_experience,
+            "Некорректный стаж работы",
+        )
 
     @property
     def position(self) -> Optional[str]:
@@ -143,6 +187,9 @@ class Teacher:
 
     @hire_date.setter
     def hire_date(self, value: date) -> None:
-        if not self.validate_hire_date(value):
-            raise ValueError(f"Некорректная дата найма: {value}")
-        self.__hire_date = value
+        self._set_validated_attr(
+            "_Teacher__hire_date",
+            value,
+            self.validate_hire_date,
+            "Некорректная дата найма",
+        )
