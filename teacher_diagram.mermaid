@@ -1,0 +1,43 @@
+classDiagram
+    class TeacherShort {
+        -int teacher_id
+        -string last_name
+        -string first_name
+        -string middle_name
+        -string phone
+
+        +__init__(teacher_id, last_name, first_name, phone, middle_name)
+        +full_name() : string
+        +validate_id(val: int) : bool$
+        +validate_name_part(val: string) : bool$
+        +validate_phone(val: string) : bool$
+        #_set_validated_attr(attr_name, value, validator, error_msg, allow_none)
+        +__repr__() : string
+        +__str__() : string
+        +__eq__(other) : bool
+        +__hash__() : int
+    }
+
+    class Teacher {
+        -string email
+        -int experience_years
+        -string position
+        -date hire_date
+
+        +__init__(teacher_id, last_name, first_name, phone, experience_years, hire_date, middle_name, email, position)
+        +from_string(data_str: string, sep: string) : Teacher$
+        +from_dict(data: dict) : Teacher$
+        +from_json(json_str: string) : Teacher$
+        +validate_email(val: string) : bool$
+        +validate_experience(val: int) : bool$
+        +validate_hire_date(val: date) : bool$
+        +days_employed() : int
+        +__repr__() : string
+        +__str__() : string
+        +__lt__(other: Teacher) : bool
+        +__le__(other: Teacher) : bool
+        +__gt__(other: Teacher) : bool
+        +__ge__(other: Teacher) : bool
+    }
+
+    Teacher --|> TeacherShort : inherits / extends
